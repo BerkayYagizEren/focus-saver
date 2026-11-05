@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Focus Saver</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-group">
+        <div class="logo-icon"></div>
+        <div class="title-group">
+          <h1>Focus Saver</h1>
+          <span class="subtitle">Odak Koruyucu</span>
+        </div>
+      </div>
+      <div id="statusPill" class="status-pill idle">Hazır</div>
+    </header>
+
+    <!-- Timer Display Card -->
+    <div class="timer-card">
+      <div class="timer-ring-container">
+        <svg class="progress-ring" width="160" height="160">
+          <circle class="progress-ring__bg" stroke="rgba(255,255,255,0.08)" stroke-width="8" fill="transparent" r="70" cx="80" cy="80"/>
+          <circle id="progressCircle" class="progress-ring__circle" stroke="#6366f1" stroke-width="8" stroke-linecap="round" fill="transparent" r="70" cx="80" cy="80"/>
+        </svg>
+        <div class="timer-readout">
+          <span id="timeText" class="time-text">25:00</span>
+          <span id="timeSubtext" class="time-subtext">Odak Süresi</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Duration Controls (Only shown in idle state) -->
+    <div id="setupControls" class="setup-controls">
+      <label class="control-label">Süre Seçimi</label>
+      <div class="preset-buttons">
+        <button type="button" class="preset-btn" data-min="15">15 dk</button>
+        <button type="button" class="preset-btn active" data-min="25">25 dk</button>
+        <button type="button" class="preset-btn" data-min="45">45 dk</button>
+        <button type="button" class="preset-btn" data-min="60">60 dk</button>
+      </div>
+      <div class="custom-input-group">
+        <span class="custom-label">Özel (Dk):</span>
+        <input type="number" id="customMinutes" min="1" max="300" value="25" />
+      </div>
+    </div>
+
+    <!-- Primary Action Button -->
+    <button id="toggleBtn" class="action-btn start">
+      <span class="btn-icon">⚡</span>
+      <span id="toggleBtnText">Odaklanmayı Başlat</span>
+    </button>
+
+    <!-- Protection Summary -->
+    <div class="protection-list">
+      <div class="protection-header">
+        <span>Aktif Kısıtlamalar:</span>
+        <span class="rule-hint">Direkt Bağlantı Koparılır</span>
+      </div>
+      <div class="tags">
+        <span class="tag blocked">YouTube</span>
+        <span class="tag allowed">✓ YouTube Music</span>
+        <span class="tag blocked">Kick</span>
+        <span class="tag blocked">Twitch</span>
+        <span class="tag blocked">Instagram</span>
+        <span class="tag blocked">Google/Safari Arama</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
