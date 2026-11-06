@@ -5,6 +5,7 @@ Menü çubuğundan tek tıkla hem Safari'de hem Chrome'da dikkat dağıtıcı si
 """
 
 import os
+import subprocess
 import sys
 
 # Proje dizinini sys.path'e ekle
@@ -52,46 +53,53 @@ class FocusSaverApp(rumps.App):
         self.timer = rumps.Timer(self.on_tick, 1)
         self.timer.start()
 
+    def _show_alert(self, title, message):
+        """macOS yerel uyarı penceresi gösterir"""
+        try:
+            script = f'tell application "System Events" to display alert "{title}" message "{message}"'
+            subprocess.run(["osascript", "-e", script], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
+
     def start_session(self, minutes):
         self.session_mgr.start(minutes)
         self.title = f"🎯 {minutes:02d}:00"
         self.item_status.title = f"🛡️ KORUMA AKTİF ({minutes} dk)"
-        rumps.notification(
-            title="Focus Saver",
-            subtitle=f"{minutes} dakikalık odak süresi başladı",
-            message="Safari ve Chrome korumaya alındı. YouTube Music serbest!"
-        )
 
     def custom_duration(self, _):
-        window = rumps.Window(
-            message="Kaç dakika odaklanmak istiyorsunuz?",
-            title="Özel Odak Süresi",
-            default_text="30",
-            ok="Başlat",
-            cancel="İptal",
-            dimensions=(220, 24)
-        )
-        response = window.run()
-        if response.clicked:
-            try:
-                mins = int(response.text.strip())
-                if mins > 0:
-                    self.start_session(mins)
-            except ValueError:
-                rumps.alert("Hata", "Lütfen geçerli bir sayı girin.")
+        script = '''
+        tell application "System Events"
+            activate
+            try
+                set dialogResult to display dialog "Kaç dakika odaklanmak istiyorsunuz?" default answer "30" with title "Focus Saver - Özel Odak Süresi" buttons {"İptal", "Başlat"} default button "Başlat"
+                return text returned of dialogResult
+            on error number -128
+                return "CANCEL"
+            end try
+        end tell
+        '''
+        try:
+            res = subprocess.check_output(["osascript", "-e", script], text=True).strip()
+            if res == "CANCEL" or not res:
+                return
+
+            mins = int(res)
+            if mins > 0:
+                self.start_session(mins)
+            else:
+                self._show_alert("Geçersiz Süre", "Lütfen 0'dan büyük bir dakika girin.")
+        except ValueError:
+            self._show_alert("Hata", "Lütfen sadece geçerli bir sayı girin (örnek: 30).")
+        except Exception as e:
+            print(f"[Focus Saver] Özel süre belirleme hatası: {e}")
 
     def stop_session(self, _):
         if self.session_mgr.is_running:
             self.session_mgr.stop()
             self.title = "🎯 Focus"
             self.item_status.title = "🛡️ Durum: Hazır"
-            rumps.notification(
-                title="Focus Saver",
-                subtitle="Seans durduruldu",
-                message="Korumalar kaldırıldı, tüm sitelere erişim serbest."
-            )
         else:
-            rumps.alert("Bilgi", "Zaten aktif bir odak seansı bulunmuyor.")
+            self._show_alert("Bilgi", "Zaten aktif bir odak seansı bulunmuyor.")
 
     def on_tick(self, _):
         if self.session_mgr.is_running:
